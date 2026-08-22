@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:bett_box/clash/clash.dart';
 import 'package:bett_box/common/common.dart';
 import 'package:bett_box/common/external_control.dart';
+import 'package:bett_box/enum/enum.dart';
 import 'package:bett_box/l10n/l10n.dart';
 import 'package:bett_box/manager/hotkey_manager.dart';
 import 'package:bett_box/manager/manager.dart';
@@ -241,6 +242,7 @@ class ApplicationState extends ConsumerState<Application>
                   primaryColor: themeProps.primaryColor,
                 ),
                 fontFamily: fontFamily,
+                fontFamilyFallback: [FontFamily.twEmoji.value],
               ),
               darkTheme: ThemeData(
                 useMaterial3: true,
@@ -250,6 +252,7 @@ class ApplicationState extends ConsumerState<Application>
                   primaryColor: themeProps.primaryColor,
                 ).toPureBlack(themeProps.pureBlack),
                 fontFamily: fontFamily,
+                fontFamilyFallback: [FontFamily.twEmoji.value],
               ),
               home: child!,
             );

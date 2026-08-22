@@ -1,9 +1,6 @@
 import 'package:emoji_regex/emoji_regex.dart';
-import 'package:bett_box/common/common.dart';
 import 'package:bett_box/enum/enum.dart';
-import 'package:bett_box/providers/providers.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../state.dart';
 
@@ -49,7 +46,7 @@ class TooltipText extends StatelessWidget {
   }
 }
 
-class EmojiText extends ConsumerWidget {
+class EmojiText extends StatelessWidget {
   final String text;
   final TextStyle? style;
   final int? maxLines;
@@ -64,9 +61,8 @@ class EmojiText extends ConsumerWidget {
   });
 
   List<TextSpan> _buildTextSpans(
-    String emojis,
+    String text,
     TextStyle defaultStyle,
-    bool useTwemoji,
   ) {
     final List<TextSpan> spans = [];
     final matches = emojiRegex().allMatches(text);
@@ -87,9 +83,8 @@ class EmojiText extends ConsumerWidget {
           text: match.group(0),
           style: effectiveStyle.merge(
             TextStyle(
-              fontFamily: useTwemoji ? FontFamily.twEmoji.value : null,
-              fontFamilyFallback:
-                  useTwemoji ? [FontFamily.twEmoji.value] : null,
+              fontFamily: FontFamily.twEmoji.value,
+              fontFamilyFallback: [FontFamily.twEmoji.value],
             ),
           ),
         ),
@@ -106,20 +101,15 @@ class EmojiText extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final defaultStyle = DefaultTextStyle.of(context).style;
-    final useHarmonyFont = ref.watch(
-      themeSettingProvider.select((state) => state.useHarmonyFont),
-    );
-    final useTwemoji =
-        useHarmonyFont || (system.isDesktop && !system.isMacOS);
 
     return RichText(
       textScaler: MediaQuery.of(context).textScaler,
       maxLines: maxLines,
       overflow: overflow ?? TextOverflow.clip,
       text: TextSpan(
-        children: _buildTextSpans(text, defaultStyle, useTwemoji),
+        children: _buildTextSpans(text, defaultStyle),
       ),
     );
   }
