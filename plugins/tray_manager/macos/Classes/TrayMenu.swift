@@ -105,6 +105,9 @@ private final class PersistentTrayMenuItemView: NSView {
         isHovered = contains(event)
         updateAppearance()
         if shouldTrigger {
+            if !NSApp.isActive {
+                NSApp.activate(ignoringOtherApps: true)
+            }
             onClick?()
         }
     }
@@ -146,10 +149,10 @@ private final class PersistentTrayMenuItemView: NSView {
     }
 
     private func contains(_ event: NSEvent) -> Bool {
-        guard event.window === window else {
+        guard let ownFrame = window?.convertToScreen(frame) else {
             return false
         }
-        return bounds.contains(convert(event.locationInWindow, from: nil))
+        return ownFrame.contains(event.locationInScreen)
     }
 }
 
@@ -166,8 +169,15 @@ public class TrayMenu: NSMenu, NSMenuDelegate {
         autoenablesItems = false
     }
 
-    private func menuItemTitle(_ label: String, _ sublabel: String) -> String {
-        return sublabel.isEmpty ? label : "\(label)\t\(sublabel)"
+    private func menuItemTitle(
+        _ label: String,
+        _ sublabel: String,
+        forceRightColumn: Bool = false
+    ) -> String {
+        if sublabel.isEmpty {
+            return forceRightColumn ? "\(label)\t" : label
+        }
+        return "\(label)\t\(sublabel)"
     }
 
     private func preferredMenuWidth(_ items: [NSDictionary]) -> CGFloat {
@@ -180,7 +190,8 @@ public class TrayMenu: NSMenu, NSMenuDelegate {
             }
             let label = itemDict["label"] as? String ?? ""
             let sublabel = itemDict["sublabel"] as? String ?? ""
-            let title = menuItemTitle(label, sublabel)
+            let isCheckbox = type == "checkbox"
+            let title = menuItemTitle(label, sublabel, forceRightColumn: isCheckbox)
             let titleWidth = (title as NSString).size(
                 withAttributes: [.font: font]
             ).width
@@ -207,6 +218,7 @@ public class TrayMenu: NSMenu, NSMenuDelegate {
             let toolTip: String = itemDict["toolTip"] as? String ?? ""
             let checked: Bool? = itemDict["checked"] as? Bool
             let disabled: Bool = itemDict["disabled"] as? Bool ?? true
+            let isCheckbox = type == "checkbox"
             
             if (type == "separator") {
                 menuItem = NSMenuItem.separator()
@@ -216,7 +228,7 @@ public class TrayMenu: NSMenu, NSMenuDelegate {
 
             menuItem.tag = id
             menuItem.representedObject = key.isEmpty ? nil : key
-            menuItem.title = menuItemTitle(label, sublabel)
+            menuItem.title = menuItemTitle(label, sublabel, forceRightColumn: isCheckbox)
             menuItem.toolTip = toolTip
             menuItem.isEnabled = !disabled
             menuItem.action = !disabled ? #selector(statusItemMenuButtonClicked) : nil
@@ -297,6 +309,7 @@ public class TrayMenu: NSMenu, NSMenuDelegate {
             let toolTip: String = itemDict["toolTip"] as? String ?? ""
             let checked: Bool? = itemDict["checked"] as? Bool
             let disabled: Bool = itemDict["disabled"] as? Bool ?? true
+            let isCheckbox = type == "checkbox"
 
             let menuItem: NSMenuItem
             if key.isEmpty {
@@ -314,7 +327,7 @@ public class TrayMenu: NSMenu, NSMenuDelegate {
                 return
             }
 
-            menuItem.title = menuItemTitle(label, sublabel)
+            menuItem.title = menuItemTitle(label, sublabel, forceRightColumn: isCheckbox)
             menuItem.toolTip = toolTip
             menuItem.isEnabled = !disabled
             menuItem.action = !disabled ? #selector(statusItemMenuButtonClicked) : nil
